@@ -4,14 +4,11 @@ import random
 
 
 POSITIONS_LIST = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+X_LETTER = 'X'
+O_LETTER = 'O'
+
 game_on = False
 winner = None
-x_letter = 'X'
-o_letter = 'O'
-
-print(logo)
-user_input = input('Welcome to the Tic Tac Toe Game. \n'
-                   'Please, type "Start" to start the game. ').lower()
 
 
 def init_game():
@@ -25,7 +22,7 @@ def checking_free_position(move, letter):
     for row in POSITIONS_LIST:
         for index, position in enumerate(row):
             if position == move:
-                if position == x_letter or position == o_letter:
+                if position == X_LETTER or position == O_LETTER:
                     return False
                 else:
                     row[index] = letter
@@ -36,79 +33,95 @@ def checking_results():
     """Checking results to finish or continue the game"""
     global winner
 
-    if all(position == x_letter or position == o_letter for row in POSITIONS_LIST for position in row):
-        winner = 2
+    # Checking the draw
+    if all(position in [X_LETTER, O_LETTER] for row in POSITIONS_LIST for position in row):
+        winner = 0
 
     # Checking results in a row
     for row in POSITIONS_LIST:
         result = all(position == row[0] for position in row)
         if result:
             for position in row:
-                if position == x_letter:
-                    winner = 1
-                elif position == o_letter:
-                    winner = 0
-
+                if position == X_LETTER:
+                    winner = X_LETTER
+                elif position == O_LETTER:
+                    winner = O_LETTER
 
     # Checking results in a column
     transposed_list = list(zip(*POSITIONS_LIST))
 
-    x_in_f_col = all(value == x_letter for value in transposed_list[0])
-    x_in_s_col = all(value == x_letter for value in transposed_list[1])
-    x_in_th_col = all(value == x_letter for value in transposed_list[2])
-
-    o_in_f_col = all(value == o_letter for value in transposed_list[0])
-    o_in_s_col = all(value == o_letter for value in transposed_list[1])
-    o_in_th_col = all(value == o_letter for value in transposed_list[2])
-
-    if x_in_f_col or x_in_s_col or x_in_th_col:
-        winner = 1
-    elif o_in_f_col or o_in_s_col or o_in_th_col:
-        winner = 0
+    for col in transposed_list:
+        if all(value == X_LETTER for value in col):
+            winner = X_LETTER
+        elif all(value == O_LETTER for value in col):
+            winner = O_LETTER
 
     return winner
 
 
-def announce_results():
+def announce_results(choice):
     global winner
-    if winner == 1:
-        return 'Congratulations, you won the game!'
-    elif winner == 0:
-        return 'You lose!'
-    else:
+    if winner == 0:
         return "It's a draw."
+    elif winner == choice:
+        return 'Congratulations, you won the game!'
+    else:
+        return 'You lose!'
 
 
-def game():
+def make_move(choice):
+    """Asking a user to make a move"""
+    user_move = int(input('Please, choose the position where you want to put X. '))
+    if not checking_free_position(user_move, X_LETTER):
+        print('Position is already occupied. Please choose another position.')
+        user_move = int(input('Please, choose another position where you want to put X. '))
+
+
+def computer_move(letter):
+    """Asking computer to make a move"""
+    pc_move = random.randint(1, 9)
+    while not checking_free_position(pc_move, letter):
+        pc_move = random.randint(1, 9)
+    print(f'Computer move is {pc_move}.')
+    print(tabulate(POSITIONS_LIST, tablefmt='pretty'))
+
+
+def game(choice):
     global game_on
-    if checking_results() == 0:
-        print(announce_results())
+    if checking_results() == choice:
+        print(announce_results(choice))
         game_on = False
     else:
-        user_move = int(input('Please, choose the position where you want to put X. '))
-        if not checking_free_position(user_move, x_letter):
-            print('Position is already occupied. Please choose another position.')
-            user_move = int(input('Please, choose another position where you want to put X. '))
-
-        if checking_results() == 1 or checking_results() == 2 or checking_results() == 0:
+        if choice == X_LETTER:
+            make_move(user_choice)
+        else:
+            computer_move(X_LETTER)
             print(tabulate(POSITIONS_LIST, tablefmt='pretty'))
-            print(announce_results())
+
+        if checking_results() == X_LETTER or checking_results() == O_LETTER or checking_results() == 0:
+            print(tabulate(POSITIONS_LIST, tablefmt='pretty'))
+            print(announce_results(choice))
             game_on = False
         else:
-            computer_move = random.randint(1, 9)
-            while not checking_free_position(computer_move, o_letter):
-                computer_move = random.randint(1, 9)
-            print(f'Computer move is {computer_move}.')
-            print(tabulate(POSITIONS_LIST, tablefmt='pretty'))
+            if choice == 'O':
+                make_move(user_choice)
+            else:
+                computer_move(O_LETTER)
+
+
+print(logo)
+user_input = input('Welcome to the Tic Tac Toe Game. \n'
+                   'Please type "Start" to start the game or "Quit" to exit. ').lower()
 
 
 if user_input == 'quite':
     print('Goodbye!')
 elif user_input == 'start':
+    user_choice = input("Please select 'X' or 'O': ").upper()
     game_on = True
     print(tabulate(POSITIONS_LIST, tablefmt='pretty'))
     while game_on:
-        game()
+        game(user_choice)
 
         if not game_on:
             restart = input("Do you want to restart the game? Type 'yes' or 'no'.\n").lower()
@@ -117,5 +130,6 @@ elif user_input == 'start':
                 break
             else:
                 init_game()
+                user_choice = input("Please select 'X' or 'O': ").upper()
                 print(tabulate(POSITIONS_LIST, tablefmt='pretty'))
                 game_on = True
