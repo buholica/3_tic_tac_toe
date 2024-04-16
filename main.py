@@ -56,6 +56,12 @@ def checking_results():
         elif all(value == O_LETTER for value in col):
             winner = O_LETTER
 
+    # Checking results diagonally
+    if ((POSITIONS_LIST[0][0] == POSITIONS_LIST[1][1] == POSITIONS_LIST[2][2] or
+        POSITIONS_LIST[0][2] == POSITIONS_LIST[1][1] == POSITIONS_LIST[2][0]) and
+            POSITIONS_LIST[1][1] in [X_LETTER, O_LETTER]):
+        winner = POSITIONS_LIST[1][1]
+
     return winner
 
 
@@ -71,8 +77,8 @@ def announce_results(choice):
 
 def make_move(choice):
     """Asking a user to make a move"""
-    user_move = int(input('Please, choose the position where you want to put X. '))
-    if not checking_free_position(user_move, X_LETTER):
+    user_move = int(input(f'Please, choose the position where you want to put {choice}. '))
+    if not checking_free_position(user_move, choice):
         print('Position is already occupied. Please choose another position.')
         user_move = int(input('Please, choose another position where you want to put X. '))
 
@@ -93,18 +99,17 @@ def game(choice):
         game_on = False
     else:
         if choice == X_LETTER:
-            make_move(user_choice)
+            make_move(choice)
         else:
             computer_move(X_LETTER)
-            print(tabulate(POSITIONS_LIST, tablefmt='pretty'))
 
         if checking_results() == X_LETTER or checking_results() == O_LETTER or checking_results() == 0:
             print(tabulate(POSITIONS_LIST, tablefmt='pretty'))
             print(announce_results(choice))
             game_on = False
         else:
-            if choice == 'O':
-                make_move(user_choice)
+            if choice == O_LETTER:
+                make_move(choice)
             else:
                 computer_move(O_LETTER)
 
